@@ -1,0 +1,109 @@
+/* src/content/sidebar/css/annotations.css */
+
+/* Annotation List Styling */
+.annotation-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+/* Editor Container */
+#editor-container {
+    margin-bottom: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#editor-toolbar {
+    display: flex;
+    justify-content: flex-start; /* Align items to the start */
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.toolbar-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #333;
+}
+
+#preview-button {
+    margin-left: auto; /* Push the Preview button to the right */
+}
+
+.toolbar-button:last-child {
+    margin-left: auto; /* Push the last button to the right */
+}
+
+.toolbar-button:hover {
+    background-color: #e0e0e0;
+    border-radius: 3px;
+}
+
+.toolbar-button i {
+    font-size: 10px; /* Ensure smaller icon size */
+    vertical-align: middle;
+}
+
+/* Preview Button Styling */
+#preview-button {
+    font-size: 10px; /* Match the smaller size */
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: none;
+    margin-left: 0; /* Align with the other buttons */
+    display: flex;
+    align-items: center;
+}
+
+/* Annotation Editor Styling */
+#annotation-editor {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Base styling for the text container */
+.annotation-text {
+    font-style: italic;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 15px 0; /* Adds space above and below the text container */
+    padding-left: 8px; /* Adds space to the left of the text to accommodate the line */
+    position: relative; /* Position relative for the pseudo-element */
+}
+
+/* Default state with light gray line */
+.annotation-text::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px; /* Width of the left line */
+    background-color: #ccc; /* Light gray color for the line */
+    border-radius: 2px; /* Optional: to give the line rounded edges */
+}
+
+/* Hover effect to change line color to light blue */
+.annotation-text:hover::before {
+    background-color: #007bff; /* Light blue color for the line on hover */
+}
