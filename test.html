@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local File Detection Example</title>
+    <style>
+        #offline-message {
+            display: none;
+            background-color: red;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="offline-message">You are currently using the annotator tool with an offline interactive textbook. Some features may be different than those in a textbook on the world wide web.</div>
+
+    <script>
+        function checkIfLocal() {
+            const offlineMessage = document.getElementById('offline-message');
+            if (window.location.protocol === 'file:') {
+                offlineMessage.style.display = 'block';
+            } else {
+                offlineMessage.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', checkIfLocal);
+    </script>
+</body>
+</html>

@@ -1,29 +1,15 @@
-// src/content/sidebar/js/annotationSidebar.js
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === "openSidebar") {
+        openSidebar(request.text);
+    }
+});
 
-function createAnnotationSidebar(range = null) {
-    console.log('Creating Annotation Sidebar');  // Debugging line
-    loadSidebar(() => {
-        const sidebar = document.getElementById('annotation-sidebar');
-        if (sidebar) {
-            console.log('Sidebar Found');  // Debugging line
-            sidebar.style.display = 'block';
-            console.log('Sidebar Display Set to Block');
-
-            if (range) {
-                // Highlight the text after the sidebar is shown
-                const highlightId = saveHighlight(range.toString());
-                finalizeHighlight(highlightId);
-            }
-        } else {
-            console.log('Sidebar Not Found');  // Debugging line
-        }
-    });
-}
-
-function saveAnnotation() {
-    closeAnnotationSidebar();
-}
-
-function closeAnnotationSidebar() {
-    document.getElementById('annotation-sidebar').style.display = 'none';
+function openSidebar(text) {
+    const sidebar = document.getElementById("annotation-sidebar");
+    if (sidebar) {
+        sidebar.style.display = "block";
+        document.getElementById('annotation-editor').innerText = text;
+    } else {
+        console.error("Sidebar element not found!");
+    }
 }
