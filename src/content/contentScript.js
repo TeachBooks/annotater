@@ -327,13 +327,81 @@ function openAnnotationSidebar(selection, range) {
             console.error("Annotation text element not found in the DOM.");
         }
 
+        // Ensure editor container is visible each time the sidebar is opened
+        const editorContainer = document.getElementById('editor-container');
+        if (editorContainer) {
+            editorContainer.style.display = 'block';
+        }
+
         // Store annotation data globally for further use
         window.annotationData = annotationData;
+
+        // Display existing annotations after opening the sidebar
+        displayExistingAnnotations();
     });
 }
 
-// The rest of your existing code...
+// Function to display existing annotations in the sidebar
+function displayExistingAnnotations() {
+    chrome.storage.local.get({ annotations: [] }, function(result) {
+        const annotations = result.annotations.filter(annotation => annotation.url === window.location.href);
 
+        const annotationList = document.getElementById('annotation-list');
+        annotationList.innerHTML = ''; // Clear previous entries
+
+        annotations.forEach(annotation => {
+            const annotationItem = document.createElement('div');
+            annotationItem.className = 'annotation-item';
+            annotationItem.style.backgroundColor = 'white';
+            annotationItem.style.padding = '10px';
+            annotationItem.style.marginBottom = '10px';
+            annotationItem.style.position = 'relative';
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-annotation';
+            deleteButton.innerText = 'X';
+            deleteButton.style.position = 'absolute';
+            deleteButton.style.top = '5px';
+            deleteButton.style.right = '5px';
+            deleteButton.style.background = 'red';
+            deleteButton.style.color = 'white';
+            deleteButton.style.border = 'none';
+            deleteButton.style.cursor = 'pointer';
+
+            deleteButton.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this annotation?')) {
+                    deleteAnnotation(annotation);
+                }
+            });
+
+            annotationItem.appendChild(deleteButton);
+
+            const selectedTextElement = document.createElement('div');
+            selectedTextElement.className = 'selected-text';
+            selectedTextElement.innerText = annotation.text;
+            selectedTextElement.style.fontWeight = 'bold';
+            annotationItem.appendChild(selectedTextElement);
+
+            const annotationTextElement = document.createElement('div');
+            displayAnnotationText(annotation.annotationText || '', annotationTextElement);
+            annotationItem.appendChild(annotationTextElement);
+
+            annotationList.appendChild(annotationItem);
+        });
+    });
+}
+
+// Function to delete an annotation
+function deleteAnnotation(annotation) {
+    chrome.storage.local.get({ annotations: [] }, function(result) {
+        const annotations = result.annotations.filter(ann => ann !== annotation);
+
+        chrome.storage.local.set({ annotations: annotations }, function() {
+            console.log("Annotation deleted successfully. Updated annotations:", JSON.stringify(annotations, null, 2));
+            displayExistingAnnotations(); // Refresh the list of annotations
+        });
+    });
+}
 
 // Utility function to truncate the selected text
 function truncateText(text, limit) {
@@ -416,6 +484,8 @@ function initialize() {
                 console.log("Reapplied annotation:", JSON.stringify(annotation, null, 2));
             }
         });
+
+        displayExistingAnnotations(); // Display annotations on load
     });
 }
 
@@ -428,65 +498,50 @@ if (document.readyState === "loading") {
 // Sidebar.js (This would be part of your sidebar's JavaScript file)
 
 // Saving annotation from sidebar
-document.getElementById("save-button").addEventListener("click", function() {
-    console.log("Save button clicked.");
+document.addEventListener("click", function(event) {
+    if (event.target && event.target.id === "save-button") {
+        console.log("Save button clicked.");
 
-    const annotationText = document.getElementById("annotation-editor").innerText;
-    console.log("Annotation text entered:", annotationText);
+        const annotationText = document.getElementById("annotation-editor").innerText;
+        console.log("Annotation text entered:", annotationText);
 
-    const tags = document.getElementById("tag-input").value;
-    console.log("Tags entered:", tags);
+        if (window.annotationData) {
+            const annotationData = {
+                ...window.annotationData,
+                annotationText: annotationText
+            };
 
-    if (window.annotationData) {
-        const annotationData = {
-            ...window.annotationData,
-            annotationText: annotationText,
-            tags: tags,
-        };
+            console.log("Prepared annotation data to save:", JSON.stringify(annotationData, null, 2));
 
-        console.log("Prepared annotation data to save:", JSON.stringify(annotationData, null, 2));
+            chrome.storage.local.get({ annotations: [] }, function(result) {
+                const annotations = result.annotations;
+                console.log("Existing annotations retrieved from storage:", JSON.stringify(annotations, null, 2));
 
-        chrome.storage.local.get({ annotations: [] }, function(result) {
-            const annotations = result.annotations;
-            console.log("Existing annotations retrieved from storage:", JSON.stringify(annotations, null, 2));
-
-            const existingAnnotationIndex = annotations.findIndex(annotation =>
-                annotation.rangeInfo.startOffset === annotationData.rangeInfo.startOffset &&
-                annotation.rangeInfo.endOffset === annotationData.rangeInfo.endOffset &&
-                annotation.url === annotationData.url
-            );
-
-            if (existingAnnotationIndex !== -1) {
-                console.log("Updating existing annotation at index:", existingAnnotationIndex);
-                annotations[existingAnnotationIndex] = annotationData;
-            } else {
-                console.log("Adding new annotation.");
                 annotations.push(annotationData);
-            }
 
-            chrome.storage.local.set({ annotations: annotations }, function() {
-                console.log("Annotation saved successfully to storage. Updated annotations:", JSON.stringify(annotations, null, 2));
+                chrome.storage.local.set({ annotations: annotations }, function() {
+                    console.log("Annotation saved successfully to storage. Updated annotations:", JSON.stringify(annotations, null, 2));
 
-                // Provide feedback to the user after saving
-                alert("Annotation saved successfully!");
-                console.log("User alerted about successful save.");
+                    // Provide feedback to the user after saving
+                    alert("Annotation saved successfully!");
+                    console.log("User alerted about successful save.");
 
-                // Clear the editor and tags input
-                document.getElementById("annotation-editor").innerText = '';
-                document.getElementById("tag-input").value = '';
-                console.log("Cleared annotation editor and tag input fields.");
+                    // Clear the editor input
+                    document.getElementById("annotation-editor").innerText = '';
 
-                // Optionally, close the sidebar
-                document.getElementById('annotation-sidebar').style.display = 'none';
-                console.log("Sidebar closed after saving.");
+                    // Close the editor container but keep the sidebar open
+                    document.getElementById('editor-container').style.display = 'none';
+
+                    // Refresh the list of annotations to show the new one
+                    displayExistingAnnotations();
+                });
             });
-        });
-
-        // Highlight the text in lighter yellow to indicate an annotation
-        highlightAnnotation(annotationData.rangeInfo);
-        console.log("Text highlighted with annotation style.");
-    } else {
-        console.error("No annotation data found in window.annotationData.");
+        } else {
+            console.error("No annotation data found in window.annotationData.");
+        }
+    } else if (event.target && event.target.id === "cancel-button") {
+        console.log("Cancel button clicked.");
+        document.getElementById('editor-container').style.display = 'none';
     }
 });
 
