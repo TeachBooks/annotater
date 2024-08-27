@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Inject sidebar HTML and CSS into the current page
     chrome.scripting.executeScript({
       target: { tabId: sender.tab.id },
-      files: ['src/content/sidebar/js/initializeSidebar.js'] // Ensure this file is loaded
+      files: ['src/content/sidebar/js/initializeSidebar.js'] // Ensure this file contains the sidebar creation logic
     });
 
     chrome.scripting.insertCSS({
