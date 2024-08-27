@@ -129,6 +129,7 @@ function saveHighlight(text, range) {
     const { startOffset, endOffset } = calculateFullOffsetUsingMarkers(range);
 
     const highlightData = {
+        id: Date.now(),  // Assign a unique ID using the current timestamp
         text: text,
         url: window.location.href,
         rangeInfo: {
@@ -295,6 +296,7 @@ function openAnnotationSidebar(selection, range) {
     console.log("Calculated offsets - startOffset:", startOffset, "endOffset:", endOffset);
 
     const annotationData = {
+        id: Date.now(),  // Assign a unique ID to the annotation
         text: selectedText,
         url: window.location.href,
         rangeInfo: {
@@ -370,7 +372,7 @@ function displayExistingAnnotations() {
 
             deleteButton.addEventListener('click', function() {
                 if (confirm('Are you sure you want to delete this annotation?')) {
-                    deleteAnnotation(annotation);
+                    deleteAnnotation(annotation.id);
                 }
             });
 
@@ -391,10 +393,10 @@ function displayExistingAnnotations() {
     });
 }
 
-// Function to delete an annotation
-function deleteAnnotation(annotation) {
+// Function to delete an annotation by its id
+function deleteAnnotation(annotationId) {
     chrome.storage.local.get({ annotations: [] }, function(result) {
-        const annotations = result.annotations.filter(ann => ann !== annotation);
+        const annotations = result.annotations.filter(ann => ann.id !== annotationId);
 
         chrome.storage.local.set({ annotations: annotations }, function() {
             console.log("Annotation deleted successfully. Updated annotations:", JSON.stringify(annotations, null, 2));
