@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Local Annotator",
+  "name": "TeachBooks Annotator",
   "version": "1.0",
   "permissions": [
     "storage",
