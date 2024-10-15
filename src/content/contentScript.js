@@ -288,12 +288,13 @@ function displayAnnotationText(fullText, element) {
 }
 
 // Open the annotation sidebar with selected text
+// Open the annotation sidebar with selected text
 function openAnnotationSidebar(selection, range) {
     const selectedText = selection.toString();
-    console.log("Selected text:", selectedText);
+    console.log("[DEBUG] Annotate button clicked, selected text: ", selectedText);
 
     const { startOffset, endOffset } = calculateFullOffsetUsingMarkers(range);
-    console.log("Calculated offsets - startOffset:", startOffset, "endOffset:", endOffset);
+    console.log("[DEBUG] Calculated offsets - startOffset:", startOffset, "endOffset:", endOffset);
 
     const annotationData = {
         id: Date.now(),  // Assign a unique ID to the annotation
@@ -307,32 +308,39 @@ function openAnnotationSidebar(selection, range) {
         }
     };
 
-    console.log("Annotation data prepared:", JSON.stringify(annotationData, null, 2));
+    console.log("[DEBUG] Annotation data prepared:", JSON.stringify(annotationData, null, 2));
 
+    // Ensure the sidebar is fully loaded before interacting with it
+    console.log("[DEBUG] Calling loadSidebar function");
     loadSidebar(() => {
-        console.log("Sidebar loaded or already exists.");
+        console.log("[DEBUG] Sidebar loaded or already exists, entering callback");
 
         const sidebar = document.getElementById("annotation-sidebar");
         if (!sidebar) {
-            console.error("Annotation sidebar element not found in the DOM after loading.");
+            console.error("[ERROR] Annotation sidebar element not found in the DOM after loading.");
             return;
         }
 
+        // Now that the sidebar is loaded, display it and update its content
         sidebar.style.display = "block";
-        console.log("Sidebar opened and displayed.");
+        console.log("[DEBUG] Sidebar opened and displayed.");
 
         const annotationTextElement = document.querySelector(".annotation-text");
         if (annotationTextElement) {
+            // Display truncated selected text in the annotation sidebar
             displayAnnotationText(selectedText, annotationTextElement);
-            console.log("Annotation text element populated with truncated text.");
+            console.log("[DEBUG] Annotation text element populated with truncated text.");
         } else {
-            console.error("Annotation text element not found in the DOM.");
+            console.error("[ERROR] Annotation text element (.annotation-text) not found in the DOM.");
         }
 
         // Ensure editor container is visible each time the sidebar is opened
         const editorContainer = document.getElementById('editor-container');
         if (editorContainer) {
             editorContainer.style.display = 'block';
+            console.log("[DEBUG] Editor container displayed.");
+        } else {
+            console.error("[ERROR] Editor container (editor-container) not found in the DOM.");
         }
 
         // Store annotation data globally for further use
@@ -342,6 +350,7 @@ function openAnnotationSidebar(selection, range) {
         displayExistingAnnotations();
     });
 }
+
 
 // Function to display existing annotations in the sidebar
 function displayExistingAnnotations() {
@@ -582,36 +591,59 @@ function applyAnnotationHighlight(range) {
 
     console.log("Text highlighted with annotation style.");
 }
-
 // Load and inject the sidebar into the page
 function loadSidebar(callback) {
-    console.log("Loading sidebar");
-    if (!document.getElementById('annotation-sidebar')) {
-        fetch(chrome.runtime.getURL('src/content/sidebar/sidebar.html'))
-            .then(response => response.text())
-            .then(data => {
-                console.log('Sidebar HTML fetched');
-                document.body.insertAdjacentHTML('beforeend', data);
+    console.log("[DEBUG] Loading sidebar");
 
-                const sidebar = document.getElementById('annotation-sidebar');
-                console.log('Sidebar Element:', sidebar);
-
-                // Inject CSS dynamically
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.type = 'text/css';
-                link.href = chrome.runtime.getURL('src/content/sidebar/css/sidebar.css');
-                document.head.appendChild(link);
-
-                // Load sidebar JS
-                const script = document.createElement('script');
-                script.src = chrome.runtime.getURL('src/content/sidebar/js/sidebar.js');
-                script.onload = callback;
-                document.body.appendChild(script);
-            })
-            .catch(err => console.error('Error loading sidebar:', err));
-    } else {
-        console.log("Sidebar already exists.");
-        callback();
+    // Check if sidebar is already in the DOM, if so, just call the callback
+    let sidebar = document.getElementById('annotation-sidebar');
+    if (sidebar) {
+        console.log("[DEBUG] Sidebar already exists.");
+        callback();  // Sidebar already exists, call the callback immediately
+        return;
     }
+
+    // Sidebar doesn't exist, proceed to fetch and inject it
+    fetch(chrome.runtime.getURL('src/content/sidebar/sidebar.html'))
+        .then(response => {
+            console.log("[DEBUG] Sidebar HTML fetch response received");
+            return response.text();
+        })
+        .then(data => {
+            console.log("[DEBUG] Sidebar HTML fetched successfully");
+            document.body.insertAdjacentHTML('beforeend', data);
+
+            // Ensure the sidebar element is now in the DOM
+            sidebar = document.getElementById('annotation-sidebar');
+            if (!sidebar) {
+                console.error("[ERROR] Sidebar element not found after insertion.");
+                return;
+            }
+            console.log("[DEBUG] Sidebar element found and inserted into DOM:", sidebar);
+
+            // Inject CSS dynamically
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = chrome.runtime.getURL('src/content/sidebar/css/sidebar.css');
+            document.head.appendChild(link);
+            console.log("[DEBUG] Sidebar CSS injected");
+
+            // Call the callback to proceed with further operations
+            callback();  // Sidebar is fully loaded and CSS injected, call the callback
+        })
+        .catch(err => console.error("[ERROR] Error loading sidebar:", err));
 }
+
+
+// Listen for messages from the popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'openSidebar') {
+        console.log("Message received: Open Annotation Sidebar");
+
+        // Call the function to open the sidebar
+        loadSidebar(() => {
+            console.log("Sidebar opened via popup.");
+        });
+    }
+});
