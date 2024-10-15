@@ -15,18 +15,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSummary(currentUrl);
   });
 
-  // Fetch highlights and annotations from chrome storage for the specific website and display summary
+  // Fetch highlights and annotations from chrome storage for the specific webpage and display summary
   function updateSummary(url) {
       chrome.storage.local.get({ highlights: [], annotations: [] }, (result) => {
-          // Filter highlights and annotations by the current website URL
-          const websiteHighlights = result.highlights.filter(h => h.url === url);
-          const websiteAnnotations = result.annotations.filter(a => a.url === url);
+          // Filter highlights and annotations by the current webpage URL
+          const webpageHighlights = result.highlights.filter(h => h.url === url);
+          const webpageAnnotations = result.annotations.filter(a => a.url === url);
 
-          const highlightCount = websiteHighlights.length;
-          const annotationCount = websiteAnnotations.length;
+          const highlightCount = webpageHighlights.length;
+          const annotationCount = webpageAnnotations.length;
           
           summaryElement.innerHTML = `
-              <p>For this website, you have <strong>${highlightCount}</strong> highlights and <strong>${annotationCount}</strong> annotations.</p>
+              <p>For this webpage, you have <strong>${highlightCount}</strong> highlights and <strong>${annotationCount}</strong> annotations.</p>
           `;
       });
   }
@@ -38,26 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
-  // Clear all highlights for the current website with confirmation
+  // Clear all highlights for the current webpage with confirmation
   clearHighlightsButton.addEventListener('click', () => {
-      if (confirm("Are you sure you want to clear all highlights for this website?")) {
+      if (confirm("Are you sure you want to clear all highlights for this webpage?")) {
           chrome.storage.local.get({ highlights: [] }, (result) => {
               const filteredHighlights = result.highlights.filter(h => h.url !== currentUrl); // Exclude highlights for current URL
               chrome.storage.local.set({ highlights: filteredHighlights }, () => {
-                  alert("All highlights for this website cleared.");
+                  alert("All highlights for this webpage cleared.");
                   updateSummary(currentUrl);  // Update the summary after clearing
               });
           });
       }
   });
 
-  // Clear all annotations for the current website with confirmation
+  // Clear all annotations for the current webpage with confirmation
   clearAnnotationsButton.addEventListener('click', () => {
-      if (confirm("Are you sure you want to clear all annotations for this website?")) {
+      if (confirm("Are you sure you want to clear all annotations for this webpage?")) {
           chrome.storage.local.get({ annotations: [] }, (result) => {
               const filteredAnnotations = result.annotations.filter(a => a.url !== currentUrl); // Exclude annotations for current URL
               chrome.storage.local.set({ annotations: filteredAnnotations }, () => {
-                  alert("All annotations for this website cleared.");
+                  alert("All annotations for this webpage cleared.");
                   updateSummary(currentUrl);  // Update the summary after clearing
               });
           });
