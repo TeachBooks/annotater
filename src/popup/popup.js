@@ -3,13 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const openSidebarButton = document.getElementById('open-sidebar');
   const clearHighlightsButton = document.getElementById('clear-highlights');
   const clearAnnotationsButton = document.getElementById('clear-annotations');
+  const exportDataButton = document.getElementById('export-data');
+  const importDataButton = document.getElementById('import-data');
+  const importFileInput = document.getElementById('import-file');
 
   let currentUrl = '';
 
   // Get the current tab URL
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       currentUrl = new URL(tabs[0].url).href;  // Capture the full URL
-
       updateSummary(currentUrl);
   });
 
@@ -59,6 +61,54 @@ document.addEventListener('DOMContentLoaded', () => {
                   updateSummary(currentUrl);  // Update the summary after clearing
               });
           });
+      }
+  });
+
+  // Export highlights and annotations to a JSON file
+  exportDataButton.addEventListener('click', () => {
+      chrome.storage.local.get({ highlights: [], annotations: [] }, (result) => {
+          const data = {
+              highlights: result.highlights,
+              annotations: result.annotations
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'annotations_data.json';
+          a.click();
+          URL.revokeObjectURL(url);  // Release memory
+      });
+  });
+
+  // Import highlights and annotations from a JSON file
+  importDataButton.addEventListener('click', () => {
+      importFileInput.click();  // Trigger file input click
+  });
+
+  // Handle the file input for importing data
+  importFileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              try {
+                  const importedData = JSON.parse(e.target.result);
+                  chrome.storage.local.get({ highlights: [], annotations: [] }, (result) => {
+                      const mergedHighlights = [...result.highlights, ...importedData.highlights];
+                      const mergedAnnotations = [...result.annotations, ...importedData.annotations];
+
+                      chrome.storage.local.set({ highlights: mergedHighlights, annotations: mergedAnnotations }, () => {
+                          alert("Data imported successfully.");
+                          updateSummary(currentUrl);  // Update the summary after importing
+                      });
+                  });
+              } catch (error) {
+                  alert('Failed to import data: Invalid JSON file.');
+              }
+          };
+          reader.readAsText(file);
       }
   });
 });
