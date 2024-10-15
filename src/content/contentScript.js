@@ -471,7 +471,6 @@ function findTextNode(xpath) {
     }
     return null;
 }
-
 // Initialize highlights and annotations on page load
 function initialize() {
     console.log("Reapplying highlights and annotations on page load");
@@ -481,23 +480,63 @@ function initialize() {
         const annotations = result.annotations;
 
         console.log("Loaded highlights from storage:", JSON.stringify(highlights, null, 2));
-        highlights.forEach(highlight => {
-            if (highlight.url === window.location.href) {
-                applyHighlight(highlight);
-                console.log("Reapplied highlight:", JSON.stringify(highlight, null, 2));
-            }
-        });
-
         console.log("Loaded annotations from storage:", JSON.stringify(annotations, null, 2));
-        annotations.forEach(annotation => {
-            if (annotation.url === window.location.href) {
-                highlightAnnotation(annotation.rangeInfo);
-                console.log("Reapplied annotation:", JSON.stringify(annotation, null, 2));
-            }
+
+        // Combine highlights and annotations into a single group by XPath
+        const groupedItems = groupAndSortByXPathAndOffset(highlights, annotations);
+
+        // Apply sorted highlights and annotations
+        Object.keys(groupedItems).forEach(xpath => {
+            const itemGroup = groupedItems[xpath];
+
+            // Apply each highlight or annotation in the sorted order
+            itemGroup.forEach(item => {
+                if (item.url === window.location.href) {
+                    if (item.type === 'highlight') {
+                        applyHighlight(item);  // Apply highlight
+                        console.log("Reapplied highlight:", JSON.stringify(item, null, 2));
+                    } else if (item.type === 'annotation') {
+                        highlightAnnotation(item.rangeInfo);  // Apply annotation
+                        console.log("Reapplied annotation:", JSON.stringify(item, null, 2));
+                    }
+                }
+            });
         });
 
-        displayExistingAnnotations(); // Display annotations on load
+        displayExistingAnnotations(); // Display annotations in the sidebar
     });
+}
+
+// Function to group and sort both highlights and annotations by XPath and endOffset
+function groupAndSortByXPathAndOffset(highlights, annotations) {
+    const grouped = {};
+
+    // Add highlights to the group
+    highlights.forEach(highlight => {
+        const xpath = highlight.rangeInfo.endXPath;
+        if (!grouped[xpath]) {
+            grouped[xpath] = [];
+        }
+
+        grouped[xpath].push({ ...highlight, type: 'highlight' });  // Mark as highlight
+    });
+
+    // Add annotations to the group
+    annotations.forEach(annotation => {
+        const xpath = annotation.rangeInfo.endXPath;
+        if (!grouped[xpath]) {
+            grouped[xpath] = [];
+        }
+
+        grouped[xpath].push({ ...annotation, type: 'annotation' });  // Mark as annotation
+    });
+
+    // Sort each group by endOffset in descending order
+    Object.keys(grouped).forEach(xpath => {
+        grouped[xpath].sort((a, b) => b.rangeInfo.endOffset - a.rangeInfo.endOffset);
+    });
+
+    return grouped;
 }
 
 if (document.readyState === "loading") {
