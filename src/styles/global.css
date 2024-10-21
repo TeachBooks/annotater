@@ -64,3 +64,72 @@
 #remove-highlight-btn:hover::before {
     color: #ff0000;
 }
+
+/* Icons for annotation toolbar buttons using FontAwesome */
+
+/* View Annotation Button */
+#view-annotation-btn::before {
+    content: "\f06e"; /* FontAwesome icon for eye */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 6px; /* Consistent spacing with other buttons */
+    font-size: 16px; /* Consistent icon size */
+}
+
+/* Remove Annotation Button */
+#remove-annotation-btn::before {
+    content: "\f1f8"; /* FontAwesome icon for trash */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: #ff4b4b; /* Red color to indicate deletion */
+    margin-right: 6px; /* Consistent spacing with other buttons */
+    font-size: 16px; /* Consistent icon size */
+}
+
+/* Hover Effect for Remove Annotation Button */
+#remove-annotation-btn:hover::before {
+    color: #ff0000; /* Darker red on hover */
+}
+
+
+/* Global styles for the extension */
+#annotation-toolbar {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 8px; /* Reduced gap between buttons */
+    padding: 6px 10px; /* Reduced padding inside the toolbar */
+    z-index: 10005;
+    align-items: center;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(-10px);
+}
+
+#annotation-toolbar.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#annotation-toolbar button {
+    background: none;
+    border: none;
+    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px 8px; /* Reduced padding inside each button */
+    border-radius: 6px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+#annotation-toolbar button:hover {
+    background-color: #f0f0f0;
+}
+
+#annotation-toolbar button i {
+    margin-right: 6px; /* Reduced space between icon and text */
+    font-size: 16px;
+}

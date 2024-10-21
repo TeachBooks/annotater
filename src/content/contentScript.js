@@ -1,11 +1,82 @@
 // Existing Code: Event listener for mouse selection
+// Updated Code: Event listener for mouse selection
 document.addEventListener("mouseup", function(event) {
     const selection = window.getSelection();
-    if (selection.toString().length > 0 && !event.target.closest('#floating-toolbar')) {
-        console.log("Text selected: ", selection.toString());
-        showFloatingToolbar(selection);
+    
+    // Proceed only if some text is selected and the target is not within any toolbar
+    if (selection.toString().length > 0 && !event.target.closest('#floating-toolbar') && !event.target.closest('#annotation-toolbar')) {
+        // Get the first range of the selection
+        const range = selection.getRangeAt(0);
+        let commonAncestor = range.commonAncestorContainer;
+        
+        // If the common ancestor is a text node, get its parent element
+        if (commonAncestor.nodeType === Node.TEXT_NODE) {
+            commonAncestor = commonAncestor.parentElement;
+        }
+        
+        // Check if the selection is within an annotated text
+        const isWithinAnnotatedText = commonAncestor.closest('.annotated-text') !== null;
+        
+        if (!isWithinAnnotatedText) {
+            console.log("Text selected outside annotated elements: ", selection.toString());
+            showFloatingToolbar(selection);
+        } else {
+            console.log("Text selected within an annotated element: ", selection.toString());
+            showAnnotationToolbar(selection);
+        }
     }
 });
+// New Function: Show the Annotation Toolbar
+function showAnnotationToolbar(selection) {
+    const existingToolbar = document.getElementById("annotation-toolbar");
+    if (existingToolbar) {
+        console.log("Removing existing annotation toolbar");
+        existingToolbar.remove();
+    }
+
+    const toolbar = document.createElement("div");
+    toolbar.id = "annotation-toolbar";
+    toolbar.innerHTML = `
+        <button id="view-annotation-btn" class="toolbar-button">View Annotation</button>
+        <button id="remove-annotation-btn" class="toolbar-button">Remove Annotation</button>
+    `;
+    console.log("Annotation toolbar created");
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    toolbar.style.position = "absolute";
+    toolbar.style.top = `${window.scrollY + rect.top - 40}px`;
+    toolbar.style.left = `${rect.left}px`;
+    // Removed other inline styles to rely on CSS
+
+    document.body.appendChild(toolbar);
+
+    // Show the toolbar with animation
+    setTimeout(() => toolbar.classList.add("show"), 10);
+
+    const viewBtn = document.getElementById("view-annotation-btn");
+    const removeBtn = document.getElementById("remove-annotation-btn");
+
+    viewBtn.addEventListener("click", function(event) {
+        event.stopPropagation();
+        console.log("View Annotation button clicked");
+        openAllAnnotationsSidebar();
+        toolbar.classList.remove("show");
+        setTimeout(() => toolbar.remove(), 300); // Delay removal for transition
+    });
+
+    removeBtn.addEventListener("click", function(event) {
+        event.stopPropagation();
+        console.log("Remove Annotation button clicked");
+        const annotationId = selection.anchorNode.parentElement.getAttribute('data-annotation-id');
+        if (annotationId) {
+            removeAnnotationById(annotationId);
+        }
+        toolbar.classList.remove("show");
+        setTimeout(() => toolbar.remove(), 300); // Delay removal for transition
+    });
+}
+
 
 // Existing Code: Event listener for clicking outside the toolbar
 document.addEventListener("mousedown", function(event) {
@@ -131,7 +202,6 @@ function getOffsetRelativeToParent(marker) {
     return offset;
 }
 
-// Existing Code: Function to save the highlight information
 function saveHighlight(text, range) {
     const { startOffset, endOffset } = calculateFullOffsetUsingMarkers(range);
 
@@ -152,12 +222,13 @@ function saveHighlight(text, range) {
     chrome.storage.local.get({ highlights: [] }, function(result) {
         const highlights = result.highlights;
         highlights.push(highlightData);
-        chrome.storage.local.set({ highlights: highlights });
-        console.log("Highlight saved. Current highlights:", JSON.stringify(highlights, null, 2));
+        chrome.storage.local.set({ highlights: highlights }, function() {
+            console.log("Highlight saved. Current highlights:", JSON.stringify(highlights, null, 2));
+            // Now highlight the text and set the data-highlight-id
+            highlightText(range, highlightData.id);
+        });
     });
 }
-
-// Existing Code: Function to apply the saved highlights to the page
 function applyHighlight(highlight) {
     const range = document.createRange();
     const rangeInfo = highlight.rangeInfo;
@@ -170,7 +241,7 @@ function applyHighlight(highlight) {
             range.setEnd(endContainer, rangeInfo.endOffset);
 
             if (range.toString().length > 0) {
-                highlightText(range);
+                highlightText(range, highlight.id); // Pass the highlight ID
                 console.log("Range applied successfully. Text:", range.toString());
             } else {
                 console.error("Range does not contain any text.");
@@ -183,32 +254,59 @@ function applyHighlight(highlight) {
     }
 }
 
-// Existing Code: Highlight the selected text
-function highlightText(range) {
+
+function highlightText(range, highlightId) {
     const span = document.createElement("span");
     span.style.backgroundColor = "yellow";
     span.className = "highlighted-text";
-
+    span.setAttribute('data-highlight-id', highlightId); // Set the highlight ID
     range.surroundContents(span);
-
-    console.log("Text highlighted");
+    console.log("Text highlighted with ID:", highlightId);
 }
 
-// Existing Code: Remove the highlight from the selected text and update storage
 function removeHighlight(range) {
     let span = range.startContainer.parentElement;
     if (span && span.classList.contains("highlighted-text")) {
+        const highlightId = span.getAttribute('data-highlight-id'); // Get the highlight ID
+        if (!highlightId) {
+            console.error("No highlight ID found on the span element.");
+            return;
+        }
+
+        // Remove the highlight from storage using the ID
+        removeHighlightFromStorageById(highlightId);
+
+        // Remove the span from the DOM
         const parent = span.parentNode;
         while (span.firstChild) {
             parent.insertBefore(span.firstChild, span);
         }
         parent.removeChild(span);
         console.log("Highlight removed");
-
-        // Remove the highlight from storage
-        removeHighlightFromStorage(range);
     }
 }
+
+function removeHighlightFromStorageById(highlightId) {
+    chrome.storage.local.get({ highlights: [] }, function(result) {
+        const highlights = result.highlights;
+
+        const indexToRemove = highlights.findIndex(highlight => highlight.id == highlightId);
+
+        if (indexToRemove !== -1) {
+            console.log("Matching highlight found for removal at index:", indexToRemove);
+            console.log("Highlight data being removed:", JSON.stringify(highlights[indexToRemove], null, 2));
+            highlights.splice(indexToRemove, 1); // Remove the highlight from the array
+            chrome.storage.local.set({ highlights: highlights }, function() {
+                console.log("Highlight removed from storage. Updated highlights:", JSON.stringify(highlights, null, 2));
+            });
+        } else {
+            console.log("No matching highlight found in storage to remove.");
+            console.log("Attempted removal with ID:", highlightId);
+        }
+    });
+}
+
+
 
 // Existing Code: Remove the highlight from storage
 function removeHighlightFromStorage(range) {
@@ -678,12 +776,10 @@ document.addEventListener("click", function(event) {
         viewBtn.addEventListener("click", function(e) {
             e.stopPropagation();
             console.log("View annotation clicked");
-            const annotationId = annotatedElement.getAttribute('data-annotation-id');
-            if (annotationId) {
-                viewAnnotation(annotationId);
-            }
-            toolbar.remove();
+            openAllAnnotationsSidebar(); // Open sidebar and load all annotations
+            toolbar.remove(); // Remove the toolbar after action
         });
+        
         
         removeBtn.addEventListener("click", function(e) {
             e.stopPropagation();
@@ -834,6 +930,14 @@ document.addEventListener("click", function(event) {
 
                     // Refresh the list of annotations to show the updated one
                     displayExistingAnnotations();
+                    
+                    setTimeout(() => {
+                        console.log("Waited 3 seconds");
+                    }, 3000); // Wait for 2000 milliseconds (2 seconds)
+                    
+                    // Reload the page to apply changes
+                    location.reload();
+                    
                 });
             });
         } else {
@@ -1093,3 +1197,33 @@ function showConfirmationDialog(message, onConfirm) {
     document.body.appendChild(overlay);
     document.body.appendChild(dialog);
 }
+
+
+// New Addition: Function to open the sidebar and load all annotations
+function openAllAnnotationsSidebar() {
+    console.log("Opening annotations sidebar to display all annotations.");
+
+    loadSidebar(() => {
+        console.log("Sidebar loaded.");
+        const sidebar = document.getElementById("annotation-sidebar");
+        if (!sidebar) {
+            console.error("[ERROR] Annotation sidebar element not found in the DOM after loading.");
+            return;
+        }
+
+        // Now that the sidebar is loaded, display it
+        sidebar.style.display = "block";
+        console.log("[DEBUG] Sidebar opened and displayed.");
+
+        // Ensure editor container is hidden when viewing all annotations
+        const editorContainer = document.getElementById('editor-container');
+        if (editorContainer) {
+            editorContainer.style.display = 'none';
+            console.log("[DEBUG] Editor container hidden.");
+        }
+
+        // Display all existing annotations
+        displayExistingAnnotations();
+    });
+}
+
