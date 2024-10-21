@@ -931,13 +931,7 @@ document.addEventListener("click", function(event) {
                     // Refresh the list of annotations to show the updated one
                     displayExistingAnnotations();
                     
-                    setTimeout(() => {
-                        console.log("Waited 3 seconds");
-                    }, 3000); // Wait for 2000 milliseconds (2 seconds)
-                    
-                    // Reload the page to apply changes
-                    location.reload();
-                    
+
                 });
             });
         } else {
@@ -1065,10 +1059,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'openSidebar') {
         console.log("Message received: Open Annotation Sidebar");
 
-        // Call the function to open the sidebar
-        loadSidebar(() => {
-            console.log("Sidebar opened via popup.");
-        });
+        openAllAnnotationsSidebar();
     }
 });
 
