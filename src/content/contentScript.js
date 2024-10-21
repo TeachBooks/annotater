@@ -1,4 +1,4 @@
-// Event listener for mouse selection
+// Existing Code: Event listener for mouse selection
 document.addEventListener("mouseup", function(event) {
     const selection = window.getSelection();
     if (selection.toString().length > 0 && !event.target.closest('#floating-toolbar')) {
@@ -7,16 +7,23 @@ document.addEventListener("mouseup", function(event) {
     }
 });
 
-// Event listener for clicking outside the toolbar
+// Existing Code: Event listener for clicking outside the toolbar
 document.addEventListener("mousedown", function(event) {
     const toolbar = document.getElementById("floating-toolbar");
     if (toolbar && !toolbar.contains(event.target)) {
         console.log("Clicked outside toolbar, removing toolbar");
         toolbar.remove();
     }
+    
+    // Remove annotation toolbar if clicking outside
+    const annotationToolbar = document.getElementById("annotation-toolbar");
+    if (annotationToolbar && !annotationToolbar.contains(event.target)) {
+        console.log("Clicked outside annotation toolbar, removing toolbar");
+        annotationToolbar.remove();
+    }
 });
 
-// Show the floating toolbar
+// Existing Code: Show the floating toolbar
 function showFloatingToolbar(selection) {
     const existingToolbar = document.getElementById("floating-toolbar");
     if (existingToolbar) {
@@ -86,7 +93,7 @@ function showFloatingToolbar(selection) {
     });
 }
 
-// Function to calculate the offset within the entire parent element using markers
+// Existing Code: Function to calculate the offset within the entire parent element using markers
 function calculateFullOffsetUsingMarkers(range) {
     const startMarker = document.createElement("span");
     const endMarker = document.createElement("span");
@@ -107,7 +114,7 @@ function calculateFullOffsetUsingMarkers(range) {
     return { startOffset, endOffset };
 }
 
-// Function to get the offset relative to the parent container
+// Existing Code: Function to get the offset relative to the parent container
 function getOffsetRelativeToParent(marker) {
     let offset = 0;
     let currentNode = marker.previousSibling;
@@ -124,7 +131,7 @@ function getOffsetRelativeToParent(marker) {
     return offset;
 }
 
-// Function to save the highlight information
+// Existing Code: Function to save the highlight information
 function saveHighlight(text, range) {
     const { startOffset, endOffset } = calculateFullOffsetUsingMarkers(range);
 
@@ -150,16 +157,17 @@ function saveHighlight(text, range) {
     });
 }
 
-// Function to apply the saved highlights to the page
+// Existing Code: Function to apply the saved highlights to the page
 function applyHighlight(highlight) {
     const range = document.createRange();
-    const startContainer = findTextNode(highlight.rangeInfo.startXPath);
-    const endContainer = findTextNode(highlight.rangeInfo.endXPath);
+    const rangeInfo = highlight.rangeInfo;
+    const startContainer = findTextNode(rangeInfo.startXPath);
+    const endContainer = findTextNode(rangeInfo.endXPath);
 
     if (startContainer && endContainer) {
         try {
-            range.setStart(startContainer, highlight.rangeInfo.startOffset);
-            range.setEnd(endContainer, highlight.rangeInfo.endOffset);
+            range.setStart(startContainer, rangeInfo.startOffset);
+            range.setEnd(endContainer, rangeInfo.endOffset);
 
             if (range.toString().length > 0) {
                 highlightText(range);
@@ -168,14 +176,14 @@ function applyHighlight(highlight) {
                 console.error("Range does not contain any text.");
             }
         } catch (e) {
-            console.error("Error applying highlight:", e, "Range info:", highlight.rangeInfo);
+            console.error("Error applying highlight:", e, "Range info:", rangeInfo);
         }
     } else {
         console.error("Failed to find text nodes to reapply highlight. Start container:", startContainer, "End container:", endContainer);
     }
 }
 
-// Highlight the selected text
+// Existing Code: Highlight the selected text
 function highlightText(range) {
     const span = document.createElement("span");
     span.style.backgroundColor = "yellow";
@@ -186,7 +194,7 @@ function highlightText(range) {
     console.log("Text highlighted");
 }
 
-// Remove the highlight from the selected text and update storage
+// Existing Code: Remove the highlight from the selected text and update storage
 function removeHighlight(range) {
     let span = range.startContainer.parentElement;
     if (span && span.classList.contains("highlighted-text")) {
@@ -202,7 +210,7 @@ function removeHighlight(range) {
     }
 }
 
-// Remove the highlight from storage
+// Existing Code: Remove the highlight from storage
 function removeHighlightFromStorage(range) {
     const { startOffset, endOffset } = calculateFullOffsetUsingMarkers(range);
 
@@ -242,13 +250,13 @@ function removeHighlightFromStorage(range) {
     });
 }
 
-// Check if the text is already highlighted
+// Existing Code: Check if the text is already highlighted
 function isTextHighlighted(range) {
     const element = range.startContainer.parentElement;
     return element && element.classList.contains("highlighted-text");
 }
 
-// Function to split text into lines of a specified length
+// Existing Code: Function to split text into lines of a specified length
 function splitTextIntoLines(text, maxLineLength) {
     const lines = [];
     let start = 0;
@@ -263,7 +271,7 @@ function splitTextIntoLines(text, maxLineLength) {
     return lines;
 }
 
-// Function to display truncated text with "More" link if necessary
+// Existing Code: Function to display truncated text with "More" link if necessary
 function displayAnnotationText(fullText, element) {
     const maxLineLength = 50; // Approximate number of characters per line
     const maxLines = 2; // Maximum number of lines to display initially
@@ -287,8 +295,7 @@ function displayAnnotationText(fullText, element) {
     }
 }
 
-// Open the annotation sidebar with selected text
-// Open the annotation sidebar with selected text
+// Existing Code: Open the annotation sidebar with selected text
 function openAnnotationSidebar(selection, range) {
     const selectedText = selection.toString();
     console.log("[DEBUG] Annotate button clicked, selected text: ", selectedText);
@@ -305,7 +312,8 @@ function openAnnotationSidebar(selection, range) {
             endOffset: endOffset,
             startXPath: getXPath(range.startContainer),
             endXPath: getXPath(range.endContainer)
-        }
+        },
+        annotationText: "" // Initialize with empty text
     };
 
     console.log("[DEBUG] Annotation data prepared:", JSON.stringify(annotationData, null, 2));
@@ -351,8 +359,7 @@ function openAnnotationSidebar(selection, range) {
     });
 }
 
-
-// Function to display existing annotations in the sidebar
+// Updated Code: Function to display existing annotations in the sidebar
 function displayExistingAnnotations() {
     chrome.storage.local.get({ annotations: [] }, function(result) {
         const annotations = result.annotations.filter(annotation => annotation.url === window.location.href);
@@ -363,46 +370,110 @@ function displayExistingAnnotations() {
         annotations.forEach(annotation => {
             const annotationItem = document.createElement('div');
             annotationItem.className = 'annotation-item';
-            annotationItem.style.backgroundColor = 'white';
-            annotationItem.style.padding = '10px';
-            annotationItem.style.marginBottom = '10px';
-            annotationItem.style.position = 'relative';
 
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'delete-annotation';
-            deleteButton.innerText = 'X';
-            deleteButton.style.position = 'absolute';
-            deleteButton.style.top = '5px';
-            deleteButton.style.right = '5px';
-            deleteButton.style.background = 'red';
-            deleteButton.style.color = 'white';
-            deleteButton.style.border = 'none';
-            deleteButton.style.cursor = 'pointer';
+            // Create header section
+            const header = document.createElement('div');
+            header.className = 'annotation-item-header';
 
-            deleteButton.addEventListener('click', function() {
-                if (confirm('Are you sure you want to delete this annotation?')) {
-                    deleteAnnotation(annotation.id);
-                }
-            });
-
-            annotationItem.appendChild(deleteButton);
-
+            // Selected text
             const selectedTextElement = document.createElement('div');
             selectedTextElement.className = 'selected-text';
             selectedTextElement.innerText = annotation.text;
-            selectedTextElement.style.fontWeight = 'bold';
-            annotationItem.appendChild(selectedTextElement);
 
+            // Creation date
+            const dateElement = document.createElement('div');
+            dateElement.className = 'annotation-date';
+            const date = new Date(annotation.id);
+            dateElement.innerText = date.toLocaleString();
+
+            header.appendChild(selectedTextElement);
+            header.appendChild(dateElement);
+
+            // Annotation text
             const annotationTextElement = document.createElement('div');
+            annotationTextElement.className = 'annotation-text-content';
             displayAnnotationText(annotation.annotationText || '', annotationTextElement);
+
+            // Actions (Edit, Delete)
+            const actions = document.createElement('div');
+            actions.className = 'annotation-actions';
+
+            // Edit button
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-annotation';
+            editButton.innerText = 'Edit';
+
+            editButton.addEventListener('click', function() {
+                console.log("Edit button clicked for annotation:", annotation.id);
+                editAnnotation(annotation);
+            });
+
+            // Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-annotation';
+            deleteButton.innerText = 'Delete';
+
+            deleteButton.addEventListener('click', function() {
+                showConfirmationDialog('Are you sure you want to delete this annotation?', function() {
+                    deleteAnnotation(annotation.id);
+                });
+            });
+
+            actions.appendChild(editButton);
+            actions.appendChild(deleteButton);
+
+            // Append all parts to annotation item
+            annotationItem.appendChild(header);
             annotationItem.appendChild(annotationTextElement);
+            annotationItem.appendChild(actions);
 
             annotationList.appendChild(annotationItem);
         });
     });
 }
 
-// Function to delete an annotation by its id
+// New Addition: Function to edit an existing annotation
+function editAnnotation(annotation) {
+    console.log("Editing annotation:", annotation);
+
+    // Store the annotation data globally for further use
+    window.annotationData = annotation;
+
+    // Open the sidebar if not already open
+    loadSidebar(() => {
+        console.log("Sidebar loaded for editing annotation.");
+        const sidebar = document.getElementById("annotation-sidebar");
+        if (sidebar) {
+            sidebar.style.display = "block";
+
+            // Ensure editor container is visible
+            const editorContainer = document.getElementById('editor-container');
+            if (editorContainer) {
+                editorContainer.style.display = 'block';
+
+                // Set the selected text in the annotation text element
+                const annotationTextElement = document.querySelector(".annotation-text");
+                if (annotationTextElement) {
+                    displayAnnotationText(annotation.text, annotationTextElement);
+                }
+
+                // Set the existing annotation text in the editor
+                const annotationEditor = document.getElementById("annotation-editor");
+                if (annotationEditor) {
+                    annotationEditor.innerText = annotation.annotationText || '';
+                }
+
+                console.log("Editor populated with existing annotation data.");
+            } else {
+                console.error("Editor container not found.");
+            }
+        } else {
+            console.error("Sidebar not found.");
+        }
+    });
+}
+
+// Updated Code: Function to delete an annotation by its id
 function deleteAnnotation(annotationId) {
     chrome.storage.local.get({ annotations: [] }, function(result) {
         const annotations = result.annotations.filter(ann => ann.id !== annotationId);
@@ -410,11 +481,29 @@ function deleteAnnotation(annotationId) {
         chrome.storage.local.set({ annotations: annotations }, function() {
             console.log("Annotation deleted successfully. Updated annotations:", JSON.stringify(annotations, null, 2));
             displayExistingAnnotations(); // Refresh the list of annotations
+            // Additionally, remove the annotation highlight from the page
+            removeAnnotationHighlight(annotationId);
+
+            // Provide feedback to the user
+            showToast("Annotation deleted successfully!");
         });
     });
 }
 
-// Utility function to truncate the selected text
+// New Addition: Function to remove annotation highlight from the DOM
+function removeAnnotationHighlight(annotationId) {
+    const annotatedElements = document.querySelectorAll(`[data-annotation-id="${annotationId}"]`);
+    annotatedElements.forEach(element => {
+        const parent = element.parentNode;
+        while (element.firstChild) {
+            parent.insertBefore(element.firstChild, element);
+        }
+        parent.removeChild(element);
+    });
+    console.log(`Annotation highlight with ID ${annotationId} removed from DOM.`);
+}
+
+// Existing Code: Utility function to truncate the selected text
 function truncateText(text, limit) {
     console.log("truncateText called with text:", text, "and limit:", limit);
     if (text.length <= limit) {
@@ -426,7 +515,7 @@ function truncateText(text, limit) {
     return truncated;
 }
 
-// Function to generate a more reliable XPath
+// Existing Code: Function to generate a more reliable XPath
 function getXPath(node) {
     if (!node) return '';
     if (node.nodeType === Node.TEXT_NODE) {
@@ -452,7 +541,7 @@ function getXPath(node) {
     return xpath;
 }
 
-// Function to find a text node from its XPath
+// Existing Code: Function to find a text node from its XPath
 function findTextNode(xpath) {
     try {
         const evaluator = new XPathEvaluator();
@@ -471,7 +560,8 @@ function findTextNode(xpath) {
     }
     return null;
 }
-// Initialize highlights and annotations on page load
+
+// Existing Code: Initialize highlights and annotations on page load
 function initialize() {
     console.log("Reapplying highlights and annotations on page load");
 
@@ -496,7 +586,7 @@ function initialize() {
                         applyHighlight(item);  // Apply highlight
                         console.log("Reapplied highlight:", JSON.stringify(item, null, 2));
                     } else if (item.type === 'annotation') {
-                        highlightAnnotation(item.rangeInfo);  // Apply annotation
+                        highlightAnnotation(item);  // Apply annotation
                         console.log("Reapplied annotation:", JSON.stringify(item, null, 2));
                     }
                 }
@@ -507,7 +597,7 @@ function initialize() {
     });
 }
 
-// Function to group and sort both highlights and annotations by XPath and endOffset
+// Existing Code: Function to group and sort both highlights and annotations by XPath and endOffset
 function groupAndSortByXPathAndOffset(highlights, annotations) {
     const grouped = {};
 
@@ -545,9 +635,154 @@ if (document.readyState === "loading") {
     initialize();
 }
 
-// Sidebar.js (This would be part of your sidebar's JavaScript file)
+// New Addition: Event listener for clicking on annotated text
+document.addEventListener("click", function(event) {
+    const annotatedElement = event.target.closest('.annotated-text');
+    
+    if (annotatedElement) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Remove any existing annotation toolbar
+        const existingToolbar = document.getElementById("annotation-toolbar");
+        if (existingToolbar) {
+            existingToolbar.remove();
+        }
+        
+        // Create the annotation toolbar
+        const toolbar = document.createElement("div");
+        toolbar.id = "annotation-toolbar";
+        toolbar.innerHTML = `
+            <button id="view-annotation-btn">View Annotation</button>
+            <button id="remove-annotation-btn">Remove Annotation</button>
+        `;
+        
+        // Position the toolbar near the annotated text
+        const rect = annotatedElement.getBoundingClientRect();
+        toolbar.style.position = "absolute";
+        toolbar.style.top = `${window.scrollY + rect.top - 40}px`;
+        toolbar.style.left = `${rect.left}px`;
+        toolbar.style.zIndex = "10000"; // Ensure toolbar is above other elements
+        toolbar.style.backgroundColor = "#fff";
+        toolbar.style.border = "1px solid #ccc";
+        toolbar.style.padding = "5px";
+        toolbar.style.borderRadius = "4px";
+        toolbar.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+        
+        document.body.appendChild(toolbar);
+        
+        // Add event listeners to the toolbar buttons
+        const viewBtn = document.getElementById("view-annotation-btn");
+        const removeBtn = document.getElementById("remove-annotation-btn");
+        
+        viewBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            console.log("View annotation clicked");
+            const annotationId = annotatedElement.getAttribute('data-annotation-id');
+            if (annotationId) {
+                viewAnnotation(annotationId);
+            }
+            toolbar.remove();
+        });
+        
+        removeBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            console.log("Remove annotation clicked");
+            const annotationId = annotatedElement.getAttribute('data-annotation-id');
+            if (annotationId) {
+                removeAnnotationById(annotationId, annotatedElement);
+            }
+            toolbar.remove();
+        });
+        
+        // Optional: Automatically remove the toolbar after a certain time
+        setTimeout(() => {
+            if (toolbar.parentNode) {
+                toolbar.remove();
+            }
+        }, 5000); // Removes the toolbar after 5 seconds
+    } else {
+        // Clicked outside an annotated text, remove annotation toolbar if exists
+        const toolbar = document.getElementById("annotation-toolbar");
+        if (toolbar) {
+            toolbar.remove();
+        }
+    }
+});
 
-// Saving annotation from sidebar
+// New Addition: Function to view a specific annotation in the sidebar
+function viewAnnotation(annotationId) {
+    chrome.storage.local.get({ annotations: [] }, function(result) {
+        const annotations = result.annotations;
+        const annotation = annotations.find(ann => ann.id === Number(annotationId));
+        
+        if (annotation) {
+            console.log("Viewing annotation:", annotation);
+            // Store the annotation data globally for the sidebar to access
+            window.annotationData = annotation;
+            // Open the sidebar
+            loadSidebar(() => {
+                console.log("Sidebar loaded for viewing annotation.");
+                const sidebar = document.getElementById("annotation-sidebar");
+                if (sidebar) {
+                    sidebar.style.display = "block";
+                    
+                    // Populate the sidebar with annotation data
+                    const annotationTextElement = document.querySelector(".annotation-text");
+                    if (annotationTextElement) {
+                        displayAnnotationText(annotation.annotationText || annotation.text, annotationTextElement);
+                        console.log("Sidebar populated with annotation data.");
+                    } else {
+                        console.error("Annotation text element not found in the sidebar.");
+                    }
+
+                    // Ensure editor container is hidden when viewing
+                    const editorContainer = document.getElementById('editor-container');
+                    if (editorContainer) {
+                        editorContainer.style.display = 'none';
+                    }
+                }
+            });
+        } else {
+            console.error("Annotation not found with ID:", annotationId);
+        }
+    });
+}
+
+// New Addition: Function to remove an annotation by its ID
+function removeAnnotationById(annotationId, annotatedElement) {
+    // Remove the annotated span from the DOM
+    if (annotatedElement && annotatedElement.parentNode) {
+        while (annotatedElement.firstChild) {
+            annotatedElement.parentNode.insertBefore(annotatedElement.firstChild, annotatedElement);
+        }
+        annotatedElement.parentNode.removeChild(annotatedElement);
+        console.log("Annotated element removed from DOM.");
+    }
+
+    // Remove the annotation from storage
+    chrome.storage.local.get({ annotations: [] }, function(result) {
+        let annotations = result.annotations;
+        const index = annotations.findIndex(ann => ann.id === Number(annotationId));
+        
+        if (index !== -1) {
+            const removed = annotations.splice(index, 1)[0];
+            chrome.storage.local.set({ annotations: annotations }, function() {
+                console.log("Annotation removed from storage:", removed);
+                displayExistingAnnotations(); // Refresh the list of annotations
+
+                // Provide feedback to the user
+                showToast("Annotation removed successfully!");
+            });
+        } else {
+            console.error("No annotation found with ID:", annotationId);
+        }
+    });
+}
+
+// Existing Code: Sidebar.js (This would be part of your sidebar's JavaScript file)
+
+// Updated Code: Saving annotation from sidebar
 document.addEventListener("click", function(event) {
     if (event.target && event.target.id === "save-button") {
         console.log("Save button clicked.");
@@ -564,16 +799,31 @@ document.addEventListener("click", function(event) {
             console.log("Prepared annotation data to save:", JSON.stringify(annotationData, null, 2));
 
             chrome.storage.local.get({ annotations: [] }, function(result) {
-                const annotations = result.annotations;
+                let annotations = result.annotations;
                 console.log("Existing annotations retrieved from storage:", JSON.stringify(annotations, null, 2));
 
-                annotations.push(annotationData);
+                // Check if we are updating an existing annotation
+                const existingIndex = annotations.findIndex(ann => ann.id === annotationData.id);
+                if (existingIndex !== -1) {
+                    // Remove old highlight before updating
+                    removeAnnotationHighlight(annotationData.id);
+                    // Update existing annotation
+                    annotations[existingIndex] = annotationData;
+                    console.log("Updated existing annotation.");
+                } else {
+                    // Add new annotation
+                    annotations.push(annotationData);
+                    console.log("Added new annotation.");
+                }
 
                 chrome.storage.local.set({ annotations: annotations }, function() {
                     console.log("Annotation saved successfully to storage. Updated annotations:", JSON.stringify(annotations, null, 2));
 
+                    // Apply the annotation highlight to the page
+                    applyAnnotationHighlightFromStorage(annotationData);
+
                     // Provide feedback to the user after saving
-                    alert("Annotation saved successfully!");
+                    showToast("Annotation saved successfully!");
                     console.log("User alerted about successful save.");
 
                     // Clear the editor input
@@ -582,7 +832,7 @@ document.addEventListener("click", function(event) {
                     // Close the editor container but keep the sidebar open
                     document.getElementById('editor-container').style.display = 'none';
 
-                    // Refresh the list of annotations to show the new one
+                    // Refresh the list of annotations to show the updated one
                     displayExistingAnnotations();
                 });
             });
@@ -595,8 +845,9 @@ document.addEventListener("click", function(event) {
     }
 });
 
-// Function to highlight the text associated with the annotation
-function highlightAnnotation(rangeInfo) {
+// Updated Code: Function to highlight the text associated with the annotation
+function highlightAnnotation(annotation) {
+    const rangeInfo = annotation.rangeInfo;
     const range = document.createRange();
     const startContainer = findTextNode(rangeInfo.startXPath);
     const endContainer = findTextNode(rangeInfo.endXPath);
@@ -607,7 +858,7 @@ function highlightAnnotation(rangeInfo) {
             range.setEnd(endContainer, rangeInfo.endOffset);
 
             if (range.toString().length > 0) {
-                applyAnnotationHighlight(range);
+                applyAnnotationHighlight(range, annotation.id);
                 console.log("Annotation text highlighted successfully.");
             } else {
                 console.error("Range does not contain any text.");
@@ -620,17 +871,48 @@ function highlightAnnotation(rangeInfo) {
     }
 }
 
-// Function to apply the annotation highlight style
-function applyAnnotationHighlight(range) {
+// New Addition: Function to apply the annotation highlight style with a unique ID
+function applyAnnotationHighlight(range, annotationId = null) {
     const span = document.createElement("span");
     span.style.backgroundColor = "lightyellow";
     span.className = "annotated-text";
+    
+    if (annotationId) {
+        span.setAttribute('data-annotation-id', annotationId);
+    }
 
     range.surroundContents(span);
 
     console.log("Text highlighted with annotation style.");
 }
-// Load and inject the sidebar into the page
+
+// New Addition: Function to apply annotation highlight from storage data
+function applyAnnotationHighlightFromStorage(annotationData) {
+    const range = document.createRange();
+    const rangeInfo = annotationData.rangeInfo;
+    const startContainer = findTextNode(rangeInfo.startXPath);
+    const endContainer = findTextNode(rangeInfo.endXPath);
+
+    if (startContainer && endContainer) {
+        try {
+            range.setStart(startContainer, rangeInfo.startOffset);
+            range.setEnd(endContainer, rangeInfo.endOffset);
+
+            if (range.toString().length > 0) {
+                applyAnnotationHighlight(range, annotationData.id);
+                console.log("Annotation highlight applied from storage.");
+            } else {
+                console.error("Range does not contain any text.");
+            }
+        } catch (e) {
+            console.error("Error applying annotation highlight from storage:", e, "Range info:", rangeInfo);
+        }
+    } else {
+        console.error("Failed to find text nodes to apply annotation highlight from storage. Start container:", startContainer, "End container:", endContainer);
+    }
+}
+
+// New Addition: Load and inject the sidebar into the page
 function loadSidebar(callback) {
     console.log("[DEBUG] Loading sidebar");
 
@@ -674,8 +956,7 @@ function loadSidebar(callback) {
         .catch(err => console.error("[ERROR] Error loading sidebar:", err));
 }
 
-
-// Listen for messages from the popup
+// Existing Code: Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'openSidebar') {
         console.log("Message received: Open Annotation Sidebar");
@@ -686,3 +967,129 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
     }
 });
+
+// New Addition: Function to show a toast notification
+function showToast(message) {
+    // Remove any existing toast
+    const existingToast = document.getElementById('custom-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // Create the toast element
+    const toast = document.createElement('div');
+    toast.id = 'custom-toast';
+    toast.innerText = message;
+
+    // Style the toast
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.backgroundColor = '#333';
+    toast.style.color = '#fff';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    toast.style.zIndex = '10000';
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.5s ease';
+
+    // Append to the body
+    document.body.appendChild(toast);
+
+    // Fade in the toast
+    setTimeout(() => {
+        toast.style.opacity = '1';
+    }, 10);
+
+    // Remove the toast after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        // Remove the toast after the fade-out transition
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 500);
+    }, 3000);
+}
+
+// New Addition: Function to show a custom confirmation dialog
+function showConfirmationDialog(message, onConfirm) {
+    // Remove any existing dialog
+    const existingDialog = document.getElementById('custom-confirmation-dialog');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+
+    // Create the overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'custom-dialog-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    overlay.style.zIndex = '10000';
+
+    // Create the dialog container
+    const dialog = document.createElement('div');
+    dialog.id = 'custom-confirmation-dialog';
+    dialog.style.position = 'fixed';
+    dialog.style.top = '50%';
+    dialog.style.left = '50%';
+    dialog.style.transform = 'translate(-50%, -50%)';
+    dialog.style.backgroundColor = '#fff';
+    dialog.style.padding = '20px';
+    dialog.style.borderRadius = '5px';
+    dialog.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    dialog.style.zIndex = '10001';
+
+    // Create the message
+    const messageElem = document.createElement('p');
+    messageElem.innerText = message;
+    dialog.appendChild(messageElem);
+
+    // Create the buttons container
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.display = 'flex';
+    buttonsContainer.style.justifyContent = 'flex-end';
+    buttonsContainer.style.marginTop = '20px';
+
+    // Create the Cancel button
+    const cancelButton = document.createElement('button');
+    cancelButton.innerText = 'Cancel';
+    cancelButton.style.marginRight = '10px';
+    cancelButton.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        document.body.removeChild(dialog);
+    });
+
+    // Create the Confirm button
+    const confirmButton = document.createElement('button');
+    confirmButton.innerText = 'Confirm';
+    confirmButton.style.backgroundColor = '#007bff';
+    confirmButton.style.color = '#fff';
+    confirmButton.style.border = 'none';
+    confirmButton.style.padding = '5px 10px';
+    confirmButton.style.borderRadius = '3px';
+    confirmButton.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        document.body.removeChild(dialog);
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    });
+
+    // Append buttons to the container
+    buttonsContainer.appendChild(cancelButton);
+    buttonsContainer.appendChild(confirmButton);
+
+    // Append buttons container to the dialog
+    dialog.appendChild(buttonsContainer);
+
+    // Append overlay and dialog to the body
+    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+}

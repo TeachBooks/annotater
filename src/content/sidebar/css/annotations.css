@@ -1,25 +1,43 @@
 /* src/content/sidebar/css/annotations.css */
 
 /* Annotation List Styling */
-.annotation-list {
+
+#annotation-sidebar .annotation-list {
     flex-grow: 1;
-    overflow-y: auto;
+    /* overflow-y: auto; Enable vertical scrolling */
+    max-height: calc(100vh - 200px); /* Adjust the 200px value as needed */
     margin-bottom: 15px;
 }
 
-/* Editor Container */
-#editor-container {
+
+/* if you want the hall thing to be scrollable  */
+/* #annotation-sidebar #editor-container {
     margin-bottom: 15px;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+} */
+
+
+/* Editor Container */
+#annotation-sidebar #editor-container {
+    position: sticky;
+    top: 0; /* Use 'bottom: 0;' if you want it to stick to the bottom */
+    z-index: 1; /* Ensure it stays above other content */
+    background-color: #fff;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-#editor-toolbar {
+
+#annotation-sidebar #editor-toolbar {
     display: flex;
-    justify-content: flex-start; /* Align items to the start */
+    justify-content: flex-start;
     align-items: center;
     gap: 6px;
     margin-bottom: 5px;
@@ -29,7 +47,7 @@
     background-color: #f9f9f9;
 }
 
-.toolbar-button {
+#annotation-sidebar .toolbar-button {
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -37,37 +55,37 @@
     color: #333;
 }
 
-#preview-button {
-    margin-left: auto; /* Push the Preview button to the right */
+#annotation-sidebar #preview-button {
+    margin-left: auto;
 }
 
-.toolbar-button:last-child {
-    margin-left: auto; /* Push the last button to the right */
+#annotation-sidebar .toolbar-button:last-child {
+    margin-left: auto;
 }
 
-.toolbar-button:hover {
+#annotation-sidebar .toolbar-button:hover {
     background-color: #e0e0e0;
     border-radius: 3px;
 }
 
-.toolbar-button i {
-    font-size: 10px; /* Ensure smaller icon size */
+#annotation-sidebar .toolbar-button i {
+    font-size: 10px;
     vertical-align: middle;
 }
 
 /* Preview Button Styling */
-#preview-button {
-    font-size: 10px; /* Match the smaller size */
+#annotation-sidebar #preview-button {
+    font-size: 10px;
     color: #007bff;
     cursor: pointer;
     text-decoration: none;
-    margin-left: 0; /* Align with the other buttons */
+    margin-left: 0;
     display: flex;
     align-items: center;
 }
 
 /* Annotation Editor Styling */
-#annotation-editor {
+#annotation-sidebar #annotation-editor {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -80,30 +98,92 @@
 }
 
 /* Base styling for the text container */
-.annotation-text {
+#annotation-sidebar .annotation-text {
     font-style: italic;
     color: #555;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin: 15px 0; /* Adds space above and below the text container */
-    padding-left: 8px; /* Adds space to the left of the text to accommodate the line */
-    position: relative; /* Position relative for the pseudo-element */
+    margin: 15px 0;
+    padding-left: 8px;
+    position: relative;
 }
 
 /* Default state with light gray line */
-.annotation-text::before {
+#annotation-sidebar .annotation-text::before {
     content: '';
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
-    width: 3px; /* Width of the left line */
-    background-color: #ccc; /* Light gray color for the line */
-    border-radius: 2px; /* Optional: to give the line rounded edges */
+    width: 3px;
+    background-color: #ccc;
+    border-radius: 2px;
 }
 
 /* Hover effect to change line color to light blue */
-.annotation-text:hover::before {
-    background-color: #007bff; /* Light blue color for the line on hover */
+#annotation-sidebar .annotation-text:hover::before {
+    background-color: #007bff;
+}
+
+/* --- Updated Styles for Annotations in Sidebar --- */
+
+/* Annotation Item Styling */
+#annotation-sidebar .annotation-item {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#annotation-sidebar .annotation-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#annotation-sidebar .selected-text {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+#annotation-sidebar .annotation-date {
+    font-size: 12px;
+    color: #999;
+}
+
+#annotation-sidebar .annotation-text-content {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+#annotation-sidebar .annotation-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#annotation-sidebar .annotation-actions button {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+#annotation-sidebar .annotation-actions button:hover {
+    text-decoration: underline;
+}
+
+#annotation-sidebar .delete-annotation {
+    color: red;
+}
+
+#annotation-sidebar .edit-annotation {
+    color: #007bff;
 }
