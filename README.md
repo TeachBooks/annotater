@@ -5,6 +5,11 @@
 This page is useful for all user types, although explicitly designed for students!
 ```
 
+```{admonition} Work in progress
+:class: warning
+This tool is still in development
+```
+
 A tool for making annotations on websites, with the primary application for use with online interactive textbooks. This extension provides students, readers and anyone with the ability to use an online textbook in a similar way as a paper book: highligh text and make notes in the margins. Although the initial feature set is simple, future releases will include the ability to use labels and different annotation types to improve your study sessions as well as features to collaborate with others. The extension is developed by the TeachBooks team (teachbooks@tudelft.nl)
 
 You can download the extension directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/teachbooks-annotator/dimjlbhnlppdgeckiigomiidepaopidm).
