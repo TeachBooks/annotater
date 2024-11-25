@@ -1009,15 +1009,24 @@ function applyAnnotationHighlightFromStorage(annotationData) {
         console.error("Failed to find text nodes to apply annotation highlight from storage. Start container:", startContainer, "End container:", endContainer);
     }
 }
-
-// New Addition: Load and inject the sidebar into the page
 function loadSidebar(callback) {
     console.log("[DEBUG] Loading sidebar");
 
-    // Check if sidebar is already in the DOM, if so, just call the callback
+    // Check if sidebar is already in the DOM, if so, adjust visibility and call the callback
     let sidebar = document.getElementById('annotation-sidebar');
     if (sidebar) {
         console.log("[DEBUG] Sidebar already exists.");
+        
+        // Ensure the sidebar and annotation container are visible
+        sidebar.style.display = "block";
+        const editorContainer = document.getElementById('annotation-container');
+        if (editorContainer) {
+            editorContainer.style.display = "block";
+            console.log("[DEBUG] Annotation container made visible.");
+        } else {
+            console.warn("[WARNING] Annotation container (editor-container) not found.");
+        }
+        
         callback();  // Sidebar already exists, call the callback immediately
         return;
     }
@@ -1048,11 +1057,34 @@ function loadSidebar(callback) {
             document.head.appendChild(link);
             console.log("[DEBUG] Sidebar CSS injected");
 
+            // Add the event listener for the toggle-sidebar-button
+            const toggleButton = document.getElementById('toggle-sidebar-button');
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function() {
+                    console.log("[DEBUG] Toggle Sidebar Button clicked. Closing sidebar and annotation container.");
+                    sidebar.style.display = "none";
+
+                    // Additionally hide the annotation container
+                    const editorContainer = document.getElementById('annotation-container');
+                    if (editorContainer) {
+                        editorContainer.style.display = "none";
+                        console.log("[DEBUG] Annotation container hidden.");
+                    } else {
+                        console.warn("[WARNING] Annotation container (editor-container) not found.");
+                    }
+                });
+                console.log("[DEBUG] Toggle Sidebar Button event listener added.");
+            } else {
+                console.error("[ERROR] Toggle Sidebar Button not found in the sidebar.");
+            }
+
             // Call the callback to proceed with further operations
             callback();  // Sidebar is fully loaded and CSS injected, call the callback
         })
         .catch(err => console.error("[ERROR] Error loading sidebar:", err));
 }
+
+
 
 // Existing Code: Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
