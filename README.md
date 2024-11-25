@@ -26,7 +26,6 @@ If you want to try it in **developer mode**, follow the step-by-step instruction
 - **Tags for Annotations**: Allow users to categorize annotations using custom tags for better organization.
 - **Different Annotation Colors**: Support for multiple highlight and annotation colors to distinguish different types of information.
 - **Annotation Sharing**: Share annotations with others via links or downloadable files.
-- **Integration with Cloud Storage**: Save and sync annotations across devices.
 - **Organized Annotation Dashboard**: A centralized dashboard to manage annotations across multiple pages.
 - **Quick Copy Feature**: Allow users to quickly copy annotated or highlighted text.
 - **Multi-page Annotation Viewing**: Navigate and manage annotations across multiple tabs or pages.
