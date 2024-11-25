@@ -1,12 +1,15 @@
-# Local Annotator Extension
+# Chrome extension: Local Annotator
+
+```{admonition} User types
+:class: tip
+This page is useful for all user types, although explicitly designed for students!
+```
 
 A tool for making annotations on websites, with the primary application for use with online interactive textbooks. This extension provides students, readers and anyone with the ability to use an online textbook in a similar way as a paper book: highligh text and make notes in the margins. Although the initial feature set is simple, future releases will include the ability to use labels and different annotation types to improve your study sessions as well as features to collaborate with others. The extension is developed by the TeachBooks team (teachbooks@tudelft.nl)
 
 You can download the extension directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/teachbooks-annotator/dimjlbhnlppdgeckiigomiidepaopidm).
 
 If you want to try it in **developer mode**, follow the step-by-step instructions below.
-
----
 
 ## Features
 
@@ -30,8 +33,6 @@ If you want to try it in **developer mode**, follow the step-by-step instruction
 - **Quick Copy Feature**: Allow users to quickly copy annotated or highlighted text.
 - **Multi-page Annotation Viewing**: Navigate and manage annotations across multiple tabs or pages.
 - **Improved Export Options**: Export highlights in multiple formats like PDF, Markdown, or CSV, or selective export for annotations with a specific tags.
-
----
 
 ## Installation
 
@@ -64,8 +65,6 @@ If you want to try the extension in **developer mode**, follow these instruction
    - Select some text to see context menu options "Annotate" and "Highlight".
    - Click "Annotate" or "Highlight" in the context menu.
 
----
-
 ## How to Use
 1. **Highlight Text**:
    - Select the text you want to highlight.
@@ -80,8 +79,6 @@ If you want to try the extension in **developer mode**, follow these instruction
    - Use the sidebar to edit or delete annotations.
 5. **Export Highlights**:
    - Use the export option to save your highlights for later use.
-
----
 
 ## Feedback and Contributions
 Feel free to submit feedback or suggest new features directly via the extension's review section on the Chrome Web Store. Your input helps make the Local Annotator better for everyone!
