@@ -80,6 +80,6 @@ If you want to try the extension in **developer mode**, follow these instruction
 5. **Export Highlights**:
    - Use the export option to save your highlights for later use.
 
-## Feedback and Contributions
-Feel free to submit feedback or suggest new features directly via the extension's review section on the Chrome Web Store. Your input helps make the Local Annotator better for everyone!
 
+## Contribute
+Feel free to submit feedback or suggest new features directly via the extension's review section on the Chrome Web Store. Your input helps make the Local Annotator better for everyone! This tool's repository is stored on [GitHub](https://github.com/TeachBooks/Sphinx-TUDelft-theme). The `README.md` of the branch `Manual` is also part of the [TeachBooks manual](https://teachbooks.io/manual/intro.html) as a submodule. If you'd like to contribute, you can create a fork and open a pull request on the [GitHub repository](https://github.com/TeachBooks/Sphinx-TUDelft-theme). To update the `README.md` shown in the TeachBooks manual, create a fork and open a merge request for the [GitHub repository of the manual](https://github.com/TeachBooks/manual). If you intent to clone the manual including its submodules, clone using: `git clone --recurse-submodulesgit@github.com:TeachBooks/manual.git`.
