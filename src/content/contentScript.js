@@ -457,74 +457,90 @@ function openAnnotationSidebar(selection, range) {
     });
 }
 
-// Updated Code: Function to display existing annotations in the sidebar
-function displayExistingAnnotations() {
+// **Updated Code: Modify displayExistingAnnotations to Accept a Search Query**
+
+function displayExistingAnnotations(searchQuery = '') {
     chrome.storage.local.get({ annotations: [] }, function(result) {
         const annotations = result.annotations.filter(annotation => annotation.url === window.location.href);
-
+    
         const annotationList = document.getElementById('annotation-list');
         annotationList.innerHTML = ''; // Clear previous entries
-
-        annotations.forEach(annotation => {
+    
+        // Filter annotations based on the search query
+        const filteredAnnotations = annotations.filter(annotation => {
+            const textMatch = annotation.text.toLowerCase().includes(searchQuery);
+            const annotationTextMatch = (annotation.annotationText || '').toLowerCase().includes(searchQuery);
+            return textMatch || annotationTextMatch;
+        });
+    
+        if (filteredAnnotations.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'no-results';
+            noResults.innerText = 'No annotations found.';
+            annotationList.appendChild(noResults);
+            return;
+        }
+    
+        filteredAnnotations.forEach(annotation => {
             const annotationItem = document.createElement('div');
             annotationItem.className = 'annotation-item';
-
+    
             // Create header section
             const header = document.createElement('div');
             header.className = 'annotation-item-header';
-
+    
             // Selected text
             const selectedTextElement = document.createElement('div');
             selectedTextElement.className = 'selected-text';
             selectedTextElement.innerText = annotation.text;
-
+    
             // Creation date
             const dateElement = document.createElement('div');
             dateElement.className = 'annotation-date';
             const date = new Date(annotation.id);
             dateElement.innerText = date.toLocaleString();
-
+    
             header.appendChild(selectedTextElement);
             header.appendChild(dateElement);
-
+    
             // Annotation text
             const annotationTextElement = document.createElement('div');
             annotationTextElement.className = 'annotation-text-content';
             displayAnnotationText(annotation.annotationText || '', annotationTextElement);
-
+    
             // Actions (Edit, Delete)
             const actions = document.createElement('div');
             actions.className = 'annotation-actions';
-
+    
             // Edit button
             const editButton = document.createElement('button');
             editButton.className = 'edit-annotation';
             editButton.innerText = 'Edit';
-
+    
             editButton.addEventListener('click', function() {
                 console.log("Edit button clicked for annotation:", annotation.id);
                 editAnnotation(annotation);
             });
-
+    
             // Delete button
             const deleteButton = document.createElement('button');
             deleteButton.className = 'delete-annotation';
             deleteButton.innerText = 'Delete';
-
+    
             deleteButton.addEventListener('click', function() {
                 showConfirmationDialog('Are you sure you want to delete this annotation?', function() {
                     deleteAnnotation(annotation.id);
                 });
             });
-
+    
             actions.appendChild(editButton);
             actions.appendChild(deleteButton);
-
+    
             // Append all parts to annotation item
             annotationItem.appendChild(header);
             annotationItem.appendChild(annotationTextElement);
             annotationItem.appendChild(actions);
-
+    
             annotationList.appendChild(annotationItem);
         });
     });
@@ -916,7 +932,7 @@ document.addEventListener("click", function(event) {
                     console.log("Annotation saved successfully to storage. Updated annotations:", JSON.stringify(annotations, null, 2));
 
                     // Apply the annotation highlight to the page
-                    applyAnnotationHighlightFromStorage(annotationData);
+                    //applyAnnotationHighlightFromStorage(annotationData);
 
                     // Provide feedback to the user after saving
                     showToast("Annotation saved successfully!");
@@ -1250,3 +1266,27 @@ function openAllAnnotationsSidebar() {
     });
 }
 
+
+document.addEventListener("DOMContentLoaded", function() {
+    const searchButton = document.getElementById('search-button');
+    const searchInput = document.getElementById('search-input');
+    
+    // Toggle search input visibility when search button is clicked
+    searchButton.addEventListener('click', function(event) {
+        console.log("lfksdajfklsadj");
+        event.stopPropagation(); // Prevent the click from triggering other events
+        searchInput.classList.toggle('visible');
+        if (searchInput.classList.contains('visible')) {
+            searchInput.focus();
+        } else {
+            searchInput.value = '';
+            displayExistingAnnotations(); // Reset the annotations display
+        }
+    });
+    
+    // Handle search input
+    searchInput.addEventListener('input', function(event) {
+        const query = event.target.value.trim().toLowerCase();
+        displayExistingAnnotations(query);
+    });
+});

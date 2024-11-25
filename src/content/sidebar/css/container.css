@@ -5,7 +5,7 @@
     direction: ltr;
     position: fixed;
     top: 0;
-    right: 20px;
+    right: 1px;
     width: 470px; /* Increase width to accommodate the toggle button */
     height: 100%;
     z-index: 1100; /* Higher than most elements but lower than necessary components */
@@ -18,7 +18,7 @@
 #annotation-sidebar {
     direction: ltr;
     position: fixed;
-    top: 40px; /* Adjust to be just below the top bar */
+    top: 54px; /* Adjust to be just below the top bar */
     right: 0;
     width: 450px; /* Width matches the container */
     height: calc(100% - 40px); /* Adjust height to account for the top bar */

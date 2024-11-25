@@ -36,8 +36,8 @@
             <!-- <button onclick="exportHighlights()">Export Highlights</button>
             <input type="file" id="import-file" onchange="importHighlights(event)"> -->
             <div id="top-bar-icons" class="top-bar-icons">
-                <button class="top-bar-button">
-                    <i class="fas fa-search"></i> <!-- Search Icon -->
+                <button id="search-button" class="top-bar-button">
+                    <i  class="fas fa-search"></i> <!-- Search Icon -->
                 </button>
                 <button class="top-bar-button">
                     <i class="fas fa-sort"></i> <!-- Sort by Icon -->
@@ -51,6 +51,8 @@
                 <button class="top-bar-button">
                     <i class="fas fa-user"></i> <!-- User Icon -->
                 </button>
+                <input type="text" id="search-input" class="search-input" placeholder="Search Annotations..." >
+
             </div>
         </div>
     </div>
