@@ -17,7 +17,7 @@ If you want to try it in **developer mode**, follow the step-by-step instruction
 - **Annotation Sidebar**:
   - View all annotations for the current page.
   - Edit, delete, or organize annotations from a central location.
-- **Search Annotations**: Quickly search for specific annotations or highlighted text using a search bar.
+- **Search Annotations**: Quickly search for specific annotations or highlighted text using a search bar. (Under development)
 - **Export Highlights**: Export your highlights and annotations for later use.
 - **Persistent Storage**: Automatically saves your annotations and highlights locally, so they stay on the page even when you refresh.
 - **Undo Highlights and Annotations**: Remove highlights or annotations effortlessly.
