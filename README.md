@@ -4,6 +4,8 @@
 :class: tip
 This page is useful for all user types, although explicitly designed for students!
 ```
++++
+{bdg-success}`Chrome Extension`
 
 ```{admonition} Work in progress
 :class: warning
