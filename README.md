@@ -1,4 +1,4 @@
-# Chrome extension: Local Annotator
+# Local Annotator
 
 ```{admonition} User types
 :class: tip
